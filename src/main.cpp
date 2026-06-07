@@ -4,6 +4,7 @@
 #include <chrono>
 #include <random>
 #include <fstream>
+#include <iomanip>
 
 int factorial(int n) {
     int res = 1;
@@ -12,12 +13,13 @@ int factorial(int n) {
 }
 
 int main() {
-    std::cout << "=== Перестановки для {1,2,3} ===" << std::endl;
+    std::cout << std::fixed << std::setprecision(6);
     
     std::vector<char> in = {'1','2','3'};
     PMTree tree(in);
     
-    std::vector<std::vector<char>> perms = getAllPerms(tree);
+    std::cout << "=== Перестановки для {1,2,3} ===" << std::endl;
+    auto perms = getAllPerms(tree);
     for (size_t i = 0; i < perms.size(); i++) {
         std::cout << i+1 << ": ";
         for (char c : perms[i]) std::cout << c;
@@ -25,8 +27,8 @@ int main() {
     }
     
     std::cout << "\n=== getPerm1 и getPerm2 ===" << std::endl;
-    std::vector<char> p1 = getPerm1(tree, 2);
-    std::vector<char> p2 = getPerm2(tree, 3);
+    auto p1 = getPerm1(tree, 2);
+    auto p2 = getPerm2(tree, 3);
     
     std::cout << "getPerm1(tree, 2): ";
     for (char c : p1) std::cout << c;
@@ -36,11 +38,10 @@ int main() {
     for (char c : p2) std::cout << c;
     std::cout << std::endl;
     
-    std::cout << "\n=== Эксперимент (данные для графика) ===" << std::endl;
+    std::cout << "\n=== Эксперимент ===" << std::endl;
     std::cout << "n\tgetAllPerms(ms)\tgetPerm1(ms)\tgetPerm2(ms)" << std::endl;
     
     std::vector<int> sizes = {3,4,5,6,7};
-    
     std::random_device rd;
     std::mt19937 gen(rd());
     
