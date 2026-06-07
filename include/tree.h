@@ -1,34 +1,32 @@
-// Copyright 2022 NNTU-CS
+// Copyright 2026 NNTU-CS
 #ifndef INCLUDE_TREE_H_
 #define INCLUDE_TREE_H_
 
 #include <vector>
-#include <algorithm>
 
-class PMTree {
-private:
-    struct Node {
+class PermutationGenerator {
+ public:
+    struct TreeNode {
         char value;
-        std::vector<Node*> children;
-        Node(char val);
-        ~Node();
+        std::vector<TreeNode*> children;
+        explicit TreeNode(char val = '\0') : value(val) {}
     };
-    
-    Node* root;
-    std::vector<char> elements;
-    void buildTree(Node* node, std::vector<char> remaining);
-    
-public:
-    PMTree(const std::vector<char>& input);
-    ~PMTree();
-    
-    Node* getRoot();
-    std::vector<char> getElements();
-    int getElementsCount();
+
+    TreeNode* root;
+    std::vector<char> items;
+
+    explicit PermutationGenerator(const std::vector<char>& input);
+    ~PermutationGenerator();
+
+ private:
+    TreeNode* build(const std::vector<char>& remaining);
+    void cleanup(TreeNode* node);
 };
 
-std::vector<std::vector<char>> getAllPerms(PMTree& tree);
-std::vector<char> getPerm1(PMTree& tree, int num);
-std::vector<char> getPerm2(PMTree& tree, int num);
+std::vector<std::vector<char>> extractAll(PermutationGenerator& gen);
+std::vector<char> getByIndexSimple(PermutationGenerator& gen, int idx);
+std::vector<char> getByIndexFast(PermutationGenerator& gen, int idx);
+
+unsigned long long factorial(int n);
 
 #endif  // INCLUDE_TREE_H_
