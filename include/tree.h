@@ -19,10 +19,8 @@ private:
     Node* root;
     std::vector<char> elements;
     
-    void buildTree(Node* node, std::vector<char> remaining) {
+    void buildTree(Node* node, std::vector<char>& remaining) {
         if (remaining.empty()) return;
-        
-        std::sort(remaining.begin(), remaining.end());
         
         for (size_t i = 0; i < remaining.size(); ++i) {
             Node* child = new Node(remaining[i]);
@@ -37,7 +35,6 @@ private:
     }
     
     void collectPerms(Node* node, std::vector<char>& current, std::vector<std::vector<char>>& result) {
-        if (!node) return;
         current.push_back(node->value);
         
         if (node->children.empty()) {
@@ -50,33 +47,38 @@ private:
         current.pop_back();
     }
     
-    void getPermByNumber(Node* node, int& counter, int target, std::vector<char>& result, bool& found) {
-        if (found) return;
+    bool getPermByNumber(Node* node, int& counter, int target, std::vector<char>& result) {
         result.push_back(node->value);
         
         if (node->children.empty()) {
             counter++;
-            if (counter == target) found = true;
-            return;
+            if (counter == target) return true;
+            result.pop_back();
+            return false;
         }
         
         for (Node* child : node->children) {
-            getPermByNumber(child, counter, target, result, found);
-            if (found) return;
+            if (getPermByNumber(child, counter, target, result)) {
+                return true;
+            }
         }
         
-        if (!found) result.pop_back();
+        result.pop_back();
+        return false;
     }
     
 public:
     PMTree(const std::vector<char>& input) : elements(input) {
         std::vector<char> sorted = input;
         std::sort(sorted.begin(), sorted.end());
-        root = new Node('\0');
+        root = new Node(0);
         buildTree(root, sorted);
     }
     
-    ~PMTree() { delete root; }
+    ~PMTree() { 
+        for (auto child : root->children) delete child;
+        delete root;
+    }
     
     std::vector<std::vector<char>> getAllPerms() {
         std::vector<std::vector<char>> result;
@@ -102,21 +104,28 @@ public:
         if (num > total) return {};
         
         std::vector<char> result;
-        bool found = false;
         int counter = 0;
         
         for (Node* child : root->children) {
-            getPermByNumber(child, counter, num, result, found);
-            if (found) break;
+            if (getPermByNumber(child, counter, num, result)) {
+                return result;
+            }
         }
         
-        return result;
+        return {};
     }
 };
 
-std::vector<std::vector<char>> getAllPerms(PMTree& tree);
-std::vector<char> getPerm1(PMTree& tree, int num);
-std::vector<char> getPerm2(PMTree& tree, int num);
+inline std::vector<std::vector<char>> getAllPerms(PMTree& tree) {
+    return tree.getAllPerms();
+}
 
+inline std::vector<char> getPerm1(PMTree& tree, int num) {
+    return tree.getPermByNumberSlow(num);
+}
+
+inline std::vector<char> getPerm2(PMTree& tree, int num) {
+    return tree.getPermByNumberFast(num);
+}
 
 #endif  // INCLUDE_TREE_H_
