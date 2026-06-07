@@ -4,29 +4,29 @@
 
 #include <vector>
 
-class PermutationGenerator {
+class PMTree {
  public:
-    struct TreeNode {
+    struct Node {
         char value;
-        std::vector<TreeNode*> children;
-        explicit TreeNode(char val = '\0') : value(val) {}
+        std::vector<Node*> children;
+        explicit Node(char val = '\0') : value(val) {}
     };
 
-    TreeNode* root;
-    std::vector<char> items;
+    Node* root;
+    std::vector<char> source;
 
-    explicit PermutationGenerator(const std::vector<char>& input);
-    ~PermutationGenerator();
+    explicit PMTree(const std::vector<char>& input);
+    ~PMTree();
 
  private:
-    TreeNode* build(const std::vector<char>& remaining);
-    void cleanup(TreeNode* node);
+    Node* createSubtree(const std::vector<char>& remaining);
+    void freeNode(Node* node);
 };
 
-std::vector<std::vector<char>> extractAll(PermutationGenerator& gen);
-std::vector<char> getByIndexSimple(PermutationGenerator& gen, int idx);
-std::vector<char> getByIndexFast(PermutationGenerator& gen, int idx);
+std::vector<std::vector<char>> getAllPerms(PMTree& obj);
+std::vector<char> getPerm1(PMTree& obj, int pos);
+std::vector<char> getPerm2(PMTree& obj, int pos);
 
-unsigned long long factorial(int n);
+size_t fact(int n);
 
 #endif  // INCLUDE_TREE_H_
