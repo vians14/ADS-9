@@ -41,9 +41,9 @@ int main() {
         for (int i = 0; i < n; ++i) {
             symbols.push_back('a' + i);
         }
-        
+
         PMTree tree(symbols);
-        
+
         size_t total = fact(n);
         std::uniform_int_distribution<> dist(1, static_cast<int>(total));
         int target = dist(generator);
@@ -51,16 +51,19 @@ int main() {
         auto start = std::chrono::high_resolution_clock::now();
         getAllPerms(tree);
         auto afterAll = std::chrono::high_resolution_clock::now();
-        
+
         getPerm1(tree, target);
         auto afterFirst = std::chrono::high_resolution_clock::now();
-        
+
         getPerm2(tree, target);
         auto afterSecond = std::chrono::high_resolution_clock::now();
 
-        double timeAll = std::chrono::duration<double>(afterAll - start).count();
-        double timeFirst = std::chrono::duration<double>(afterFirst - afterAll).count();
-        double timeSecond = std::chrono::duration<double>(afterSecond - afterFirst).count();
+        double timeAll = std::chrono::duration<double>(afterAll - start)
+                         .count();
+        double timeFirst = std::chrono::duration<double>(afterFirst - afterAll)
+                           .count();
+        double timeSecond = std::chrono::duration<double>(
+                            afterSecond - afterFirst).count();
 
         std::cout << n << ";"
                   << std::fixed << std::setprecision(8) << timeAll << ";"
