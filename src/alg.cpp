@@ -3,124 +3,122 @@
 #include <vector>
 #include "tree.h"
 
-PermutationGenerator::PermutationGenerator(const std::vector<char>& input) : items(input) {
-    root = new TreeNode('\0');
+PMTree::PMTree(const std::vector<char>& input) : source(input) {
+    root = new Node('\0');
 
     std::vector<char> sortedInput = input;
     std::sort(sortedInput.begin(), sortedInput.end());
 
-    for (char ch : sortedInput) {
+    for (char element : sortedInput) {
         std::vector<char> rest = sortedInput;
-        auto it = std::find(rest.begin(), rest.end(), ch);
-        if (it != rest.end()) {
-            rest.erase(it);
+        auto iter = std::find(rest.begin(), rest.end(), element);
+        if (iter != rest.end()) {
+            rest.erase(iter);
         }
-        TreeNode* child = build(rest);
-        child->value = ch;
+        Node* child = createSubtree(rest);
+        child->value = element;
         root->children.push_back(child);
     }
 }
 
-PermutationGenerator::~PermutationGenerator() {
-    cleanup(root);
+PMTree::~PMTree() {
+    freeNode(root);
 }
 
-PermutationGenerator::TreeNode* PermutationGenerator::build(const std::vector<char>& remaining) {
+PMTree::Node* PMTree::createSubtree(const std::vector<char>& remaining) {
     if (remaining.empty()) {
-        return new TreeNode('\0');
+        return new Node('\0');
     }
 
-    TreeNode* node = new TreeNode('\0');
+    Node* currentNode = new Node('\0');
     std::vector<char> sortedRemaining = remaining;
     std::sort(sortedRemaining.begin(), sortedRemaining.end());
 
-    for (char ch : sortedRemaining) {
+    for (char element : sortedRemaining) {
         std::vector<char> rest = sortedRemaining;
-        auto it = std::find(rest.begin(), rest.end(), ch);
-        if (it != rest.end()) {
-            rest.erase(it);
+        auto iter = std::find(rest.begin(), rest.end(), element);
+        if (iter != rest.end()) {
+            rest.erase(iter);
         }
-        TreeNode* child = build(rest);
-        child->value = ch;
-        node->children.push_back(child);
+        Node* child = createSubtree(rest);
+        child->value = element;
+        currentNode->children.push_back(child);
     }
 
-    return node;
+    return currentNode;
 }
 
-void PermutationGenerator::cleanup(PermutationGenerator::TreeNode* node) {
+void PMTree::freeNode(PMTree::Node* node) {
     if (!node) return;
-    for (TreeNode* child : node->children) {
-        cleanup(child);
+    for (Node* child : node->children) {
+        freeNode(child);
     }
     delete node;
 }
 
-static void dfs(PermutationGenerator::TreeNode* cur,
-                std::vector<char>& path,
-                std::vector<std::vector<char>>& result,
-                int depth, int limit) {
-    if (depth == limit) {
-        result.push_back(path);
+static void walkTree(PMTree::Node* current, std::vector<char>& buffer,
+                     std::vector<std::vector<char>>& result, int depth, int maxDepth) {
+    if (depth == maxDepth) {
+        result.push_back(buffer);
         return;
     }
-    for (PermutationGenerator::TreeNode* next : cur->children) {
-        path.push_back(next->value);
-        dfs(next, path, result, depth + 1, limit);
-        path.pop_back();
+    for (PMTree::Node* next : current->children) {
+        buffer.push_back(next->value);
+        walkTree(next, buffer, result, depth + 1, maxDepth);
+        buffer.pop_back();
     }
 }
 
-std::vector<std::vector<char>> extractAll(PermutationGenerator& gen) {
+std::vector<std::vector<char>> getAllPerms(PMTree& obj) {
     std::vector<std::vector<char>> result;
     std::vector<char> path;
-    int total = static_cast<int>(gen.items.size());
+    int total = static_cast<int>(obj.source.size());
 
-    for (PermutationGenerator::TreeNode* first : gen.root->children) {
+    for (PMTree::Node* first : obj.root->children) {
         path.push_back(first->value);
-        dfs(first, path, result, 1, total);
+        walkTree(first, path, result, 1, total);
         path.pop_back();
     }
 
     return result;
 }
 
-std::vector<char> getByIndexSimple(PermutationGenerator& gen, int idx) {
-    std::vector<std::vector<char>> all = extractAll(gen);
-    if (idx <= 0 || idx > static_cast<int>(all.size())) {
+std::vector<char> getPerm1(PMTree& obj, int pos) {
+    std::vector<std::vector<char>> all = getAllPerms(obj);
+    if (pos <= 0 || pos > static_cast<int>(all.size())) {
         return {};
     }
-    return all[idx - 1];
+    return all[pos - 1];
 }
 
-unsigned long long factorial(int n) {
-    unsigned long long res = 1;
+size_t fact(int n) {
+    size_t result = 1;
     for (int i = 2; i <= n; ++i) {
-        res *= i;
+        result *= i;
     }
-    return res;
+    return result;
 }
 
-std::vector<char> getByIndexFast(PermutationGenerator& gen, int idx) {
-    int total = static_cast<int>(gen.items.size());
-    if (idx <= 0 || static_cast<unsigned long long>(idx) > factorial(total)) {
+std::vector<char> getPerm2(PMTree& obj, int pos) {
+    int total = static_cast<int>(obj.source.size());
+    if (pos <= 0 || static_cast<size_t>(pos) > fact(total)) {
         return {};
     }
 
     std::vector<char> result;
-    int remainder = idx - 1;
-    PermutationGenerator::TreeNode* current = gen.root;
+    int remainder = pos - 1;
+    PMTree::Node* current = obj.root;
 
     for (int step = 0; step < total; ++step) {
-        unsigned long long block = factorial(total - step - 1);
-        int direction = remainder / static_cast<int>(block);
-        remainder %= static_cast<int>(block);
+        size_t blockSize = fact(total - step - 1);
+        int index = remainder / static_cast<int>(blockSize);
+        remainder %= static_cast<int>(blockSize);
 
-        if (direction >= static_cast<int>(current->children.size())) {
+        if (index >= static_cast<int>(current->children.size())) {
             return {};
         }
 
-        current = current->children[direction];
+        current = current->children[index];
         result.push_back(current->value);
     }
 
